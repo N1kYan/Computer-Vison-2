@@ -46,11 +46,13 @@ end
 # Negative laplacian log likelihood function
 function laplacian_nllh(I0, I1d, mu, s)
     function lap(x, mu, s)
-        y = (1/2*s)*exp(-abs(x-mu)/s)
+        y =
+        return y
+    end
     sum = 0
     for a = 1:size(I0)[1]
         for b = 1:size(I0)[2]
-            sum = sum + lap(I0[a, b]-I1d[a, b])
+            sum = sum + log((1/2*s)*exp(-abs(I0[a, b]-I1d[a, b]-mu)/s))
         end
     end
     return -sum
@@ -102,6 +104,6 @@ figure()
 imshow(i_d, cmap="gray")
 title("Shifted image")
 show()
-print(gaussian_lh(i0, i_d, 1, 10))
-print(gaussian_nllh(i0, i_d, 1, 10))
-print(laplacian_nllh(i0, i_d, 1, 10))
+print("\nGaussian LH: ", gaussian_lh(i0, i_d, 1, 1))
+print("\nGaussian -LogLH: ", gaussian_nllh(i0, i_d, 1, 1))
+print("\nLaplacian -LogLH: ", laplacian_nllh(i0, i_d, 1, 1))
