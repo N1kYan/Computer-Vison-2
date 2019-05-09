@@ -1,4 +1,4 @@
-# Assignment 1 - Exercise 3
+# Assignment 1 - Problem 3
 ENV["MPLBACKEND"]="tkagg"
 using PyPlot
 using Statistics
