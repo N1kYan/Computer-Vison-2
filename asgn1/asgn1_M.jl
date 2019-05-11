@@ -6,7 +6,7 @@ using Distributions
 pygui(true)
 
 function load_data()
-    
+
     i0_path = string(@__DIR__,"/skeleton/i0.png")
     i0 = imread(i0_path)
     i0 = convert_to_grayscale(i0)
@@ -39,7 +39,7 @@ end
 
 # Shift all pixels of i1 to the right by the value of gt
 function shift_disparity(i1::Array{Float64,2}, gt::Array{Float64,2})
-    
+
     if !(size(i1) == size(gt))
         print("Disparity map size does not match image size.\n")
     end
@@ -51,8 +51,7 @@ function shift_disparity(i1::Array{Float64,2}, gt::Array{Float64,2})
             id[a, b + convert(Int64, gt[a, b])] = i1[a, b]
         end
     end
-    
-    
+
     @assert size(id) == size(i1)
     return id::Array{Float64,2}
 end
@@ -64,55 +63,54 @@ function crop_image(i::Array{Float64,2}, gt::Array{Float64,2})
     b = 1
     while gt[a,convert(Int64,size(gt)[2]/2)] == 0
         a+=1
-        
+
     end
-    
+
     while gt[convert(Int64,size(gt)[1]/2),b] == 0
         b+=1
-        
+
     end
-    
+
     ic= copy(i[a:size(i)[1]-a,b:size(i)[2]-b])
 
     return ic::Array{Float64,2}
 end
 
 function make_noise(i::Array{Float64,2}, noise_level::Float64)
-    
-    i_noise = copy(i)    
-    
+
+    i_noise = copy(i)
+
     arr=[]
-    
-    
-    totalpx=(size(i)[1])*(size(i)[2])    
-    while ((size(arr)[1])/totalpx)<noise_level        
-                
+
+    totalpx=(size(i)[1])*(size(i)[2])
+    while ((size(arr)[1])/totalpx)<noise_level
+
         push!(arr,[rand(1:size(i)[1]),rand(1:size(i)[2])])
         arr = unique(arr)
     end
-    
-    println(((size(arr)[1])/totalpx))
+
+    #println(((size(arr)[1])/totalpx))
     for p in arr
         i_noise[p[1],p[2]]=rand()*0.8+0.1
     end
     @assert size(i_noise) == size(i)
-    
+
     return i_noise::Array{Float64,2}
 end
 
 
 # Compute the gaussian likelihood by multiplying the probabilities of a gaussian distribution
 # with the given parameters for all pixels
-function gaussian_lh(i0::Array{Float64,2}, i1::Array{Float64,2}, mu::Float64, sigma::Float64)
-    
+function gaussian_lh(i0::Array{Float64,2},
+                        i1d::Array{Float64,2}, mu::Float64, sigma::Float64)
     gauss = Normal(mu, sigma)
     l = 1
     for a = 1:size(i0)[1]
         for b = 1:size(i0)[2]
-            l = l * pdf(gauss, (i0[a, b]-i1[a, b]))
+            l = l * pdf(gauss, (i0[a, b]-i1d[a, b]))
         end
     end
-    
+
 
 
     return l::Float64
@@ -120,52 +118,69 @@ end
 
 
 # Compute the negative logarithmic gaussian likelihood in log domain
-function gaussian_nllh(i0::Array{Float64,2}, i1::Array{Float64,2}, mu::Float64, sigma::Float64)
-    
+function gaussian_nllh(i0::Array{Float64,2},
+                        i1d::Array{Float64,2}, mu::Float64, sigma::Float64)
+
     gauss = Normal(mu, sigma)
     sum = 0
     for a = 1:size(i0)[1]
         for b = 1:size(i0)[2]
-            sum = sum + log(pdf(gauss, (i0[a, b]-i1[a, b])))
+            sum = sum + log(pdf(gauss, (i0[a, b]-i1d[a, b])))
         end
     end
     nll= -sum
-
-
     return nll::Float64
 end
 
 
 # Compute the negative logarithmic laplacian likelihood in log domain
-function laplacian_nllh(i0::Array{Float64,2}, i1::Array{Float64,2}, mu::Float64, s::Float64)
-    function lap(x, mu, s)
-        y =
-        return y
-    end
+function laplacian_nllh(i0::Array{Float64,2},
+                        i1d::Array{Float64,2}, mu::Float64, s::Float64)
     sum = 0
     for a = 1:size(i0)[1]
         for b = 1:size(i0)[2]
-            sum = sum + log((1/2*s)*exp(-abs(i0[a, b]-i1[a, b]-mu)/s))
+            sum = sum + log((1/2*s)*exp(-abs(i0[a, b]-i1d[a, b]-mu)/s))
         end
     end
     nll= -sum
-    
-
     return nll::Float64
 end
 
 
 function problem4()
-    # implemented me..
+    clearconsole()
+    print("Assignment 1 - Problem 4:")
+
+    p0,p1,dm = load_data()
+    p0_shifted = shift_disparity(p0,dm)
+    p0_shifted_cropped = crop_image(p0_shifted, dm)
+    p0_cropped = crop_image(p0, dm)
+
+    print("\n\nTask 2:")
+    print("\nGaussian Likelihood: ",
+            gaussian_lh(p0_cropped, p0_shifted_cropped, 0.0, 1.2))
+    print("\n\nTask 3:")
+    print("\nNegative Gaussian Log Likelihood: ",
+            gaussian_lh(p0_cropped, p0_shifted_cropped, 0.0, 1.2))
+
+    p1_noisy = make_noise(p1, 0.12)
+    p1_noisy_shifted = shift_disparity(p1_noisy, dm)
+    p1_noisy_shifted_cropped = crop_image(p1_noisy_shifted, dm)
+
+    print("\n\nTask 4:")
+    print("\nGaussian Likelihood: ",
+            gaussian_lh(p0_cropped, p1_noisy_shifted_cropped, 0.0, 1.2))
+    print("\nNegative Gaussian Log Likelihood: ",
+            gaussian_lh(p0_cropped, p1_noisy_shifted_cropped, 0.0, 1.2))
+
+    p1_shifted = shift_disparity(p1, dm)
+    p1_shifted_cropped = crop_image(p1_shifted, dm)
+
+    print("\n\nTask 5:")
+    print("\nNegative Laplacian Log Likelihood: ",
+            laplacian_nllh(p1_shifted_cropped, p0_cropped, 0.0, 1.2))
+    print("\nNegative Laplacian Log Likelihood: ",
+            laplacian_nllh(p1_noisy_shifted_cropped, p0_cropped, 0.0, 1.2))
 end
 
-
-p1,p2,dm=load_data()
-
-shifted=shift_disparity(p1,dm)
-imshow(crop_image(shifted,dm),"gray")
-
-
-np=make_noise(p1,0.1)
-
-imshow(np,"gray")
+problem4()

@@ -82,9 +82,9 @@ function load_data()
     return (i0, i1, gt64)
 end
 
-# Crop image
-function crop(I0, I1d, gt)
-    #TODO
+# Crop images I0 and I1d to central region where gt64 is not zero
+function crop(I0, I1d, gt64)
+    # TODO
 end
 
 # Add some noise to brightness of image at p% of its pixels
@@ -96,14 +96,17 @@ end
 clearconsole()
 print("Assignment 1 - Problem 4:\n")
 (i0, i1, gt64) = load_data()
-i_d = shift_disparity(i0, gt64)
 figure()
 imshow(i0, cmap="gray")
-title("Original image")
+title("Image 0")
 figure()
-imshow(i_d, cmap="gray")
-title("Shifted image")
+imshow(gt64, cmap="gray")
+title("Ground truth disparity map")
+i1d = shift_disparity(i1, gt64)
+figure()
+imshow(i1d,cmap="gray")
+title("Disparity shifted Image 1")
 show()
-print("\nGaussian LH: ", gaussian_lh(i0, i_d, 1, 1))
-print("\nGaussian -LogLH: ", gaussian_nllh(i0, i_d, 1, 1))
-print("\nLaplacian -LogLH: ", laplacian_nllh(i0, i_d, 1, 1))
+print("\nGaussian LH: ", gaussian_lh(i0, i0d, 0, 1.2))
+print("\nGaussian -Log LH: ", gaussian_nllh(i0, i0d, 0, 1.2))
+x
