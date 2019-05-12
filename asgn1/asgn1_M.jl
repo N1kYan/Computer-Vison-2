@@ -161,26 +161,35 @@ function problem4()
             gaussian_lh(p0_cropped, p0_shifted_cropped, 0.0, 1.2))
     print("\n\nTask 3:")
     print("\nNegative Gaussian Log Likelihood: ",
-            gaussian_lh(p0_cropped, p0_shifted_cropped, 0.0, 1.2))
-
-    p1_noisy = make_noise(p1, 0.12)
-    p1_noisy_shifted = shift_disparity(p1_noisy, dm)
-    p1_noisy_shifted_cropped = crop_image(p1_noisy_shifted, dm)
-
-    print("\n\nTask 4:")
-    print("\nGaussian Likelihood: ",
-            gaussian_lh(p0_cropped, p1_noisy_shifted_cropped, 0.0, 1.2))
-    print("\nNegative Gaussian Log Likelihood: ",
-            gaussian_lh(p0_cropped, p1_noisy_shifted_cropped, 0.0, 1.2))
+            gaussian_nllh(p0_cropped, p0_shifted_cropped, 0.0, 1.2))
 
     p1_shifted = shift_disparity(p1, dm)
     p1_shifted_cropped = crop_image(p1_shifted, dm)
+    p1_noisy_12 = make_noise(p1, 0.12)
+    p1_noisy_12_shifted = shift_disparity(p1_noisy_12, dm)
+    p1_noisy_12_shifted_cropped = crop_image(p1_noisy_12_shifted, dm)
+    p1_noisy_25 = make_noise(p1, 0.25)
+    p1_noisy_25_shifted = shift_disparity(p1_noisy_25, dm)
+    p1_noisy_25_shifted_cropped = crop_image(p1_noisy_25_shifted, dm)
+
+    print("\n\nTask 4:")
+    print("\nGaussian Likelihood 12% noise: ",
+            gaussian_lh(p0_cropped, p1_noisy__12_shifted_cropped, 0.0, 1.2))
+    print("\nNegative Gaussian Log Likelihood 12% noise: ",
+            gaussian_nllh(p0_cropped, p1_noisy__12_shifted_cropped, 0.0, 1.2))
+            print("\n\nTask 4:")
+    print("\nGaussian Likelihood 12% noise: ",
+            gaussian_lh(p0_cropped, p1_noisy_25_shifted_cropped, 0.0, 1.2))
+    print("\nNegative Gaussian Log Likelihood 12% noise: ",
+            gaussian_nllh(p0_cropped, p1_noisy_25_shifted_cropped, 0.0, 1.2))
 
     print("\n\nTask 5:")
-    print("\nNegative Laplacian Log Likelihood: ",
+    print("\nNegative Laplacian Log Likelihood 0% noise: ",
             laplacian_nllh(p1_shifted_cropped, p0_cropped, 0.0, 1.2))
-    print("\nNegative Laplacian Log Likelihood: ",
-            laplacian_nllh(p1_noisy_shifted_cropped, p0_cropped, 0.0, 1.2))
+    print("\nNegative Laplacian Log Likelihood 12% noise: ",
+            laplacian_nllh(p1_noise_12_shifted_cropped, p0_cropped, 0.0, 1.2))
+    print("\nNegative Laplacian Log Likelihood 25% noise: ",
+            laplacian_nllh(p1_noisy_25_shifted_cropped, p0_cropped, 0.0, 1.2))
 end
 
 problem4()
