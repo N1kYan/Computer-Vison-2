@@ -65,12 +65,10 @@ function crop_image(i::Array{Float64,2}, gt::Array{Float64,2})
     b = 1
     while gt[a,convert(Int64,size(gt)[2]/2)] == 0
         a+=1
-
     end
 
     while gt[convert(Int64,size(gt)[1]/2),b] == 0
         b+=1
-
     end
 
     ic= copy(i[a:size(i)[1]-a,b:size(i)[2]-b])
@@ -78,26 +76,7 @@ function crop_image(i::Array{Float64,2}, gt::Array{Float64,2})
     return ic::Array{Float64,2}
 end
 
-#
-function crop_image2(i0::Array{Float64,2},id::Array{Float64,2}, gt::Array{Float64,2})
-    a = 1
-    b = 1
-    while gt[a,convert(Int64,size(gt)[2]/2)] == 0
-        a+=1
-    end
-
-    while gt[convert(Int64,size(gt)[1]/2),b] == 0
-        b+=1
-    end
-    
-    shove = convert(Int64,mean(gt[a:(size(gt)[1]-a),b]))
-    i0c= copy(i0[a:size(gt)[1]-a,b:size(gt)[2]-b])
-    gtc= copy(gt[a:size(gt)[1]-a,b:size(gt)[2]-b])
-    i1c= copy(id[a:size(gt)[1]-a,(b+shove):size(gt)[2]-b+shove])
-
-    return i0c::Array{Float64,2},i1c::Array{Float64,2},gtc::Array{Float64,2}
-end
-
+#replace i percent of the pixels with random noise 
 function make_noise(i::Array{Float64,2}, noise_level::Float64)
 
     i_noise = copy(i)
@@ -111,10 +90,11 @@ function make_noise(i::Array{Float64,2}, noise_level::Float64)
             push!(arr,[rand(1:size(i)[1]),rand(1:size(i)[2])])
             
         end
+        #remove duplicate pixels
         arr = unique(arr)
     end
     
-
+    println(size(arr))
     for p in arr
         i_noise[p[1],p[2]]=rand()*0.8+0.1
     end
@@ -164,7 +144,7 @@ function laplacian_nllh(i0::Array{Float64,2},
     sum = 0
     for a = 1:size(i0)[1]
         for b = 1:size(i0)[2]
-            sum = sum + log((1/2*s)*exp(-abs(i0[a, b]-i1d[a, b]-mu)/s))
+            sum = sum + log((1/(2*s)*exp(-abs(i0[a, b]-i1d[a, b]-mu)/s)))
         end
     end
     nll= -sum
@@ -173,8 +153,6 @@ end
 
 
 
-
-#clearconsole()
 print("Assignment 1 - Problem 4:")
 
 p0,p1,dm = load_data()
@@ -182,7 +160,6 @@ p0_shifted = shift_disparity(p0,dm)
 p0_shifted_cropped = crop_image(p0_shifted, dm)
 p0_cropped = crop_image(p0, dm)
 
-p0_cropped2,p0_shifted_cropped2, dm_cropped2 = crop_image2(p0, p0_shifted,dm)
 
 print("")
 
@@ -191,79 +168,50 @@ print("\n\nTask 2:")
 print("\nGaussian Likelihood: ",
         gaussian_lh(p0_cropped, p0_shifted_cropped, 0.0, 1.2))
 
-#Task 2 Marius
-print("\n\nTask 2:")
-print("\nGaussian Likelihood: ",
-        gaussian_lh(p0_cropped2, p0_shifted_cropped2, 0.0, 1.2))
-
 #Task 3
 print("\n\nTask 3:")
 print("\nNegative Gaussian Log Likelihood: ",
         gaussian_nllh(p0_cropped, p0_shifted_cropped, 0.0, 1.2))
-
-#Task 3 Marius
-print("\n\nTask 3:")
-print("\nNegative Gaussian Log Likelihood: ",
-        gaussian_nllh(p0_cropped2, p0_shifted_cropped2, 0.0, 1.2))
 
 #Task 4
 print("\n\nGenerating noise ...")
 p1_shifted = shift_disparity(p1, dm)
 p1_shifted_cropped = crop_image(p1_shifted, dm)
 p1_noisy_12 = make_noise(p1, 0.12)
-p1_noisy_12_shifted = shift_disparity(p1_noisy_12, dm)
-p1_noisy_12_shifted_cropped = crop_image(p1_noisy_12_shifted, dm)
+#p1_noisy_12_shifted = shift_disparity(p1_noisy_12, dm)
+#p1_noisy_12_shifted_cropped = crop_image(p1_noisy_12_shifted, dm)
 print("\n\nGenerating more noise ...")
 p1_noisy_25 = make_noise(p1, 0.25)
-p1_noisy_25_shifted = shift_disparity(p1_noisy_25, dm)
-p1_noisy_25_shifted_cropped = crop_image(p1_noisy_25_shifted, dm)
+println("")
+
+#Task 4
+p0_shifted_cropped_2 = crop_image(p0_shifted, dm)
+p0_cropped  = crop_image(p0, dm)
+p1_cropped_2  = crop_image(p1, dm)
+p1_noisy_12_cropped_2 = crop_image(p1_noisy_12, dm)
+p1_noisy_25_cropped_2 = crop_image(p1_noisy_25, dm)
+
+
 
 print("\n\nTask 4:")
-print("\nGaussian Likelihood 12% noise: ",
-        gaussian_lh(p0_cropped, p1_noisy_12_shifted_cropped, 0.0, 1.2))
-print("\nNegative Gaussian Log Likelihood 12% noise: ",
-        gaussian_nllh(p0_cropped, p1_noisy_12_shifted_cropped, 0.0, 1.2))
-        print("\n\nTask 4:")
-print("\nGaussian Likelihood 12% noise: ",
-        gaussian_lh(p0_cropped, p1_noisy_25_shifted_cropped, 0.0, 1.2))
-print("\nNegative Gaussian Log Likelihood 12% noise: ",
-        gaussian_nllh(p0_cropped, p1_noisy_25_shifted_cropped, 0.0, 1.2))
-
-#Task 4 Marius
-p0_cropped_2, p0_shifted_cropped_2,gt_cropped_2  = crop_image2(p0,p0_shifted, dm)
-drop, p1_cropped_2,gt_cropped_2  = crop_image2(p1,p1, dm)
-drop,p1_noisy_12_cropped_2,gt_cropped_2 = crop_image2(p1_noisy_12,p1_noisy_12, dm)
-drop,p1_noisy_25_cropped_2,gt_cropped_2 = crop_image2(p1_noisy_25,p1_noisy_25, dm)
-print("\n\nTask 4 Marius:")
+print("\nGaussian Likelihood 0% noise: ",
+        gaussian_lh(p0_shifted_cropped_2, p1_cropped_2, 0.0, 1.2))
+print("\nNegative Gaussian Log Likelihood 0% noise: ",
+        gaussian_nllh(p0_shifted_cropped_2, p1_cropped_2, 0.0, 1.2))
 print("\nGaussian Likelihood 12% noise: ",
         gaussian_lh(p0_shifted_cropped_2, p1_noisy_12_cropped_2, 0.0, 1.2))
 print("\nNegative Gaussian Log Likelihood 12% noise: ",
         gaussian_nllh(p0_shifted_cropped_2, p1_noisy_12_cropped_2, 0.0, 1.2))
-        print("\n\nTask 4 Marius:")
-print("\nGaussian Likelihood 12% noise: ",
+print("\nGaussian Likelihood 25% noise: ",
         gaussian_lh(p0_shifted_cropped_2, p1_noisy_25_cropped_2, 0.0, 1.2))
-print("\nNegative Gaussian Log Likelihood 12% noise: ",
+print("\nNegative Gaussian Log Likelihood 25% noise: ",
         gaussian_nllh(p0_shifted_cropped_2, p1_noisy_25_cropped_2, 0.0, 1.2))
 
 #Task 5 Marius
 print("\n\nTask 5:")
 print("\nNegative Laplacian Log Likelihood 0% noise: ",
-        laplacian_nllh(p1_cropped_2, p0_cropped_2, 0.0, 1.2))
+        laplacian_nllh(p1_cropped_2, p0_shifted_cropped_2, 0.0, 1.2))
 print("\nNegative Laplacian Log Likelihood 12% noise: ",
         laplacian_nllh(p1_noisy_12_cropped_2, p0_shifted_cropped_2, 0.0, 1.2))
 print("\nNegative Laplacian Log Likelihood 25% noise: ",
         laplacian_nllh(p1_noisy_25_cropped_2, p0_shifted_cropped_2, 0.0, 1.2))
-
-#Task 5 Marius
-print("\n\nTask 5:")
-print("\nNegative Laplacian Log Likelihood 0% noise: ",
-        laplacian_nllh(p1_shifted_cropped, p0_cropped, 0.0, 1.2))
-print("\nNegative Laplacian Log Likelihood 12% noise: ",
-        laplacian_nllh(p1_noisy_12_shifted_cropped, p0_cropped, 0.0, 1.2))
-print("\nNegative Laplacian Log Likelihood 25% noise: ",
-        laplacian_nllh(p1_noisy_25_shifted_cropped, p0_cropped, 0.0, 1.2))
-
-imshow(p0_shifted_cropped_2,"gray")
-
-
-imshow(p0_shifted_cropped,"gray")
