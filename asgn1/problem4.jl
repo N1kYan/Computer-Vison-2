@@ -9,13 +9,13 @@ pygui(false)
 
 function load_data()
 
-    i0_path = string(@__DIR__,"/skeleton/i0.png")
+    i0_path = string(@__DIR__,"/i0.png")
     i0 = imread(i0_path)
     i0 = convert_to_grayscale(i0)
-    i1_path = string(@__DIR__,"/skeleton/i1.png")
+    i1_path = string(@__DIR__,"/i1.png")
     i1 = imread(i1_path)
     i1 = convert_to_grayscale(i1)
-    gt_path = string(@__DIR__,"/skeleton/gt.png")
+    gt_path = string(@__DIR__,"/gt.png")
     gt64 = convert(Array{Float64,2}, imread(gt_path)*255)
 
     @assert maximum(gt64) <= 16
@@ -76,7 +76,7 @@ function crop_image(i::Array{Float64,2}, gt::Array{Float64,2})
     return ic::Array{Float64,2}
 end
 
-#replace i percent of the pixels with random noise 
+#replace i percent of the pixels with random noise
 function make_noise(i::Array{Float64,2}, noise_level::Float64)
 
     i_noise = copy(i)
@@ -88,12 +88,12 @@ function make_noise(i::Array{Float64,2}, noise_level::Float64)
         while ((size(arr)[1])/totalpx)<noise_level
 
             push!(arr,[rand(1:size(i)[1]),rand(1:size(i)[2])])
-            
+
         end
         #remove duplicate pixels
         arr = unique(arr)
     end
-    
+
     println(size(arr))
     for p in arr
         i_noise[p[1],p[2]]=rand()*0.8+0.1
@@ -151,7 +151,7 @@ function laplacian_nllh(i0::Array{Float64,2},
     return nll::Float64
 end
 
-
+clearconsole()
 
 print("Assignment 1 - Problem 4:")
 
